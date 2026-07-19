@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Leaderboard</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+}
+.box {
+  background:white;
+  color:black;
+  width:500px;
+  margin:40px auto;
+  padding:20px;
+  border-radius:20px;
+}
+li {
+  padding:10px;
+  margin:5px;
+  background:#f1f1f1;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🏆 Leaderboard</h2>
+  <ol id="list"></ol>
+</div>
+
+<script>
+
+const URL = "https://script.google.com/macros/s/AKfycbwDXudgiB_ZfHa-Vt6c7iWOk72vmxRnncHFN01we95wupk3Kt9uC1WDv2K7sQTN7aRM/exec";
+
+async function load(){
+  const res = await fetch(URL);
+  const data = await res.json();
+
+  let html="";
+  data.slice(0,10).forEach((x,i)=>{
+    html += `<li>${i+1}. ${x.name} (${x.score})</li>`;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+setInterval(load,3000);
+load();
+
+</script>
+
+</body>
+</html>
