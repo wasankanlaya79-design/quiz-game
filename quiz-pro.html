@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Competition</title>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: linear-gradient(135deg,#4facfe,#00f2fe);
+}
+.box {
+  background: white;
+  width: 520px;
+  margin: 30px auto;
+  padding: 25px;
+  border-radius: 20px;
+}
+button {
+  padding:12px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+}
+.true {background:green;color:white;}
+.false {background:red;color:white;}
+</style>
+</head>
+
+<body>
+
+<div class="box" id="game">
+
+<h2>🎮 Quiz Game</h2>
+
+<input id="name" placeholder="ชื่อ"><br>
+<input id="sid" placeholder="รหัส"><br>
+
+<h3 id="q">กดเริ่ม</h3>
+
+<button class="true" onclick="ans(true)">✔</button>
+<button class="false" onclick="ans(false)">✘</button><br>
+
+<button onclick="start()">🚀 เริ่ม</button>
+
+<p>⏱ เวลา: <span id="time">0</span></p>
+<p>คะแนน: <span id="score">0</span></p>
+
+<div id="sum" style="display:none;">
+  <h3>📊 สรุป</h3>
+  <p id="final"></p>
+  <button onclick="send()">💾 ส่งคะแนน</button>
+</div>
+
+</div>
+
+<script>
+
+const URL = "https://script.google.com/macros/s/AKfycbwDXudgiB_ZfHa-Vt6c7iWOk72vmxRnncHFN01we95wupk3Kt9uC1WDv2K7sQTN7aRM/exec";
+
+const bank = [
+["คุณภาพคือการตอบสนองลูกค้า", true],
+["ส่งช้าไม่เกี่ยวคุณภาพ", false],
+["TQM เน้นลูกค้า", true],
+["Six Sigma ลด error", true],
+["Kaizen คือปรับปรุงต่อเนื่อง", true],
+["Picking ผิด SKU คือปัญหา", true],
+["ISO 9001 คือมาตรฐาน", true],
+["Pareto ใช้หาปัญหาหลัก", true],
+["Right Time สำคัญ", true],
+["Histogram ใช้ดูความถี่", true]
+];
+
+function shuffle(a){
+  return a.sort(()=>Math.random()-0.5);
+}
+
+let qs=[], i=0, score=0, t=0, timer;
+
+function start(){
+  qs = shuffle(bank);
+  i=0; score=0; t=0;
+
+  timer = setInterval(()=>{
+    t++;
+    document.getElementById("time").innerText=t;
+  },1000);
+
+  next();
+}
+
+function next(){
+  if(i>=qs.length){ finish(); return; }
+  document.getElementById("q").innerText=(i+1)+". "+qs[i][0];
+}
+
+function ans(a){
+  if(a===qs[i][1]) score++;
+  document.getElementById("score").innerText=score;
+  i++;
+  next();
+}
+
+function finish(){
+  clearInterval(timer);
+  let p = Math.round(score/qs.length*100);
+
+  document.getElementById("sum").style.display="block";
+  document.getElementById("final").innerText =
+    score+"/"+qs.length+" ("+p+"%) เวลา "+t+" วิ";
+}
+
+function send(){
+  fetch(URL,{
+    method:"POST",
+    body: JSON.stringify({
+      name: document.getElementById("name").value,
+      id: document.getElementById("sid").value,
+      score: score,
+      percent: Math.round(score/qs.length*100)
+    })
+  });
+  alert("ส่งคะแนนแล้ว");
+}
+
+</script>
+
+</body>
+</html>
