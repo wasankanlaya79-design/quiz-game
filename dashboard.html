@@ -1,58 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <title>Leaderboard</title>
 
 <style>
-body {
+body{
   font-family: Arial;
-  text-align: center;
-  background: linear-gradient(135deg,#667eea,#764ba2);
+  background:#111;
   color:white;
+  text-align:center;
 }
-.box {
-  background:white;
-  color:black;
-  width:500px;
-  margin:40px auto;
-  padding:20px;
-  border-radius:20px;
+
+table{
+  margin:auto;
+  width:80%;
+  border-collapse:collapse;
 }
-li {
-  padding:10px;
-  margin:5px;
-  background:#f1f1f1;
-  border-radius:10px;
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid #444;
 }
+
+.top{
+  color:gold;
+  font-size:20px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>🏆 Leaderboard</h2>
-  <ol id="list"></ol>
-</div>
+<h1>🏆 Leaderboard</h1>
+
+<table>
+<thead>
+<tr>
+<th>อันดับ</th>
+<th>ชื่อ</th>
+<th>คะแนน</th>
+<th>%</th>
+</tr>
+</thead>
+
+<tbody id="board"></tbody>
+
+</table>
 
 <script>
 
-const URL = "https://script.google.com/macros/s/AKfycbwDXudgiB_ZfHa-Vt6c7iWOk72vmxRnncHFN01we95wupk3Kt9uC1WDv2K7sQTN7aRM/exec";
+const SHEET_URL = "https://opensheet.elk.sh/YOUR_SHEET_ID/Sheet1";
 
-async function load(){
-  const res = await fetch(URL);
-  const data = await res.json();
+function loadData(){
 
-  let html="";
-  data.slice(0,10).forEach((x,i)=>{
-    html += `<li>${i+1}. ${x.name} (${x.score})</li>`;
+  fetch(SHEET_URL)
+  .then(res=>res.json())
+  .then(data=>{
+
+    // 🔥 เรียงคะแนน
+    data.sort((a,b)=> b.คะแนน - a.คะแนน);
+
+    let html = "";
+
+    data.slice(0,5).forEach((row,i)=>{
+
+      html += `
+      <tr class="${i==0?'top':''}">
+        <td>${i+1}</td>
+        <td>${row.ชื่อ}</td>
+        <td>${row.คะแนน}</td>
+        <td>${row['%']}</td>
+      </tr>
+      `;
+    });
+
+    document.getElementById("board").innerHTML = html;
+
   });
-
-  document.getElementById("list").innerHTML = html;
 }
 
-setInterval(load,3000);
-load();
+// 🔥 realtime ทุก 2 วิ
+setInterval(loadData,2000);
+
+loadData();
 
 </script>
 
