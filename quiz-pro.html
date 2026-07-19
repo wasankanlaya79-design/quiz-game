@@ -2,128 +2,212 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Quiz Competition</title>
-
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<title>Quiz PRO</title>
 
 <style>
-body {
+body{
   font-family: Arial;
-  text-align: center;
   background: linear-gradient(135deg,#4facfe,#00f2fe);
+  text-align:center;
 }
-.box {
-  background: white;
-  width: 520px;
-  margin: 30px auto;
-  padding: 25px;
-  border-radius: 20px;
+
+.box{
+  background:white;
+  padding:20px;
+  border-radius:20px;
+  width:90%;
+  max-width:420px;
+  margin:30px auto;
 }
-button {
+
+button{
   padding:12px;
-  margin:5px;
+  font-size:18px;
+  margin:10px;
   border:none;
   border-radius:10px;
+  cursor:pointer;
 }
-.true {background:green;color:white;}
-.false {background:red;color:white;}
+
+.true{background:green;color:white;}
+.false{background:red;color:white;}
+.start{background:#333;color:white;}
+
+input{
+  width:80%;
+  padding:10px;
+  margin:5px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
 </style>
 </head>
 
 <body>
 
-<div class="box" id="game">
+<div class="box">
 
-<h2>🎮 Quiz Game</h2>
+<h2>🎮 Quiz Game PRO</h2>
 
 <input id="name" placeholder="ชื่อ"><br>
-<input id="sid" placeholder="รหัส"><br>
+<input id="id" placeholder="รหัส"><br><br>
 
-<h3 id="q">กดเริ่ม</h3>
+<div id="question">กดเริ่ม</div>
 
-<button class="true" onclick="ans(true)">✔</button>
-<button class="false" onclick="ans(false)">✘</button><br>
+<button class="true" onclick="answer(true)">✔</button>
+<button class="false" onclick="answer(false)">✖</button>
 
-<button onclick="start()">🚀 เริ่ม</button>
+<br>
+<button class="start" onclick="startGame()">🚀 เริ่ม</button>
 
 <p>⏱ เวลา: <span id="time">0</span></p>
+<p>⏳ เวลาข้อนี้: <span id="qtime">10</span></p>
 <p>คะแนน: <span id="score">0</span></p>
-
-<div id="sum" style="display:none;">
-  <h3>📊 สรุป</h3>
-  <p id="final"></p>
-  <button onclick="send()">💾 ส่งคะแนน</button>
-</div>
 
 </div>
 
 <script>
 
+// 🔥 URL Google Script ของคุณ (ใส่แล้ว)
 const URL = "https://script.google.com/macros/s/AKfycbwDXudgiB_ZfHa-Vt6c7iWOk72vmxRnncHFN01we95wupk3Kt9uC1WDv2K7sQTN7aRM/exec";
 
-const bank = [
-["คุณภาพคือการตอบสนองลูกค้า", true],
-["ส่งช้าไม่เกี่ยวคุณภาพ", false],
-["TQM เน้นลูกค้า", true],
-["Six Sigma ลด error", true],
-["Kaizen คือปรับปรุงต่อเนื่อง", true],
-["Picking ผิด SKU คือปัญหา", true],
-["ISO 9001 คือมาตรฐาน", true],
-["Pareto ใช้หาปัญหาหลัก", true],
-["Right Time สำคัญ", true],
-["Histogram ใช้ดูความถี่", true]
+// ====== 100 ข้อ ======
+let allQuestions = [
+{q:"PDCA มี 4 ขั้นตอน",a:true},
+{q:"Plan คือการลงมือทำ",a:false},
+{q:"Check คือการตรวจสอบ",a:true},
+{q:"Act คือการปรับปรุง",a:true},
+{q:"Six Sigma ลดของเสีย",a:true},
+{q:"Six Sigma เพิ่ม defect",a:false},
+{q:"TQM เน้นลูกค้า",a:true},
+{q:"TQM ทำเฉพาะผู้บริหาร",a:false},
+{q:"Kaizen คือปรับปรุงต่อเนื่อง",a:true},
+{q:"Kaizen คือเปลี่ยนครั้งเดียว",a:false},
+
+// 👉 ระบบจะทำซ้ำให้ครบ 100 อัตโนมัติ
 ];
 
-function shuffle(a){
-  return a.sort(()=>Math.random()-0.5);
+while(allQuestions.length < 100){
+  allQuestions = allQuestions.concat(allQuestions);
 }
+allQuestions = allQuestions.slice(0,100);
 
-let qs=[], i=0, score=0, t=0, timer;
+// ====== ตัวแปร ======
+let questions = [];
+let current = 0;
+let score = 0;
+let time = 0;
+let qtime = 10;
+let timer;
+let qtimer;
 
-function start(){
-  qs = shuffle(bank);
-  i=0; score=0; t=0;
+// ====== เริ่มเกม ======
+function startGame(){
+
+  score = 0;
+  current = 0;
+  time = 0;
+
+  document.getElementById("score").innerText = 0;
+
+  questions = shuffle(allQuestions).slice(0,40);
 
   timer = setInterval(()=>{
-    t++;
-    document.getElementById("time").innerText=t;
+    time++;
+    document.getElementById("time").innerText = time;
   },1000);
 
-  next();
+  showQuestion();
 }
 
-function next(){
-  if(i>=qs.length){ finish(); return; }
-  document.getElementById("q").innerText=(i+1)+". "+qs[i][0];
+// ====== สุ่ม ======
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
 }
 
-function ans(a){
-  if(a===qs[i][1]) score++;
-  document.getElementById("score").innerText=score;
-  i++;
-  next();
+// ====== เวลา/ข้อ ======
+function startQTimer(){
+
+  clearInterval(qtimer);
+  qtime = 10;
+
+  document.getElementById("qtime").innerText = qtime;
+
+  qtimer = setInterval(()=>{
+    qtime--;
+    document.getElementById("qtime").innerText = qtime;
+
+    if(qtime <= 0){
+      nextQuestion();
+    }
+
+  },1000);
 }
 
-function finish(){
+// ====== แสดงคำถาม ======
+function showQuestion(){
+
+  if(current >= questions.length){
+    endGame();
+    return;
+  }
+
+  document.getElementById("question").innerText =
+    (current+1)+". "+questions[current].q;
+
+  startQTimer();
+}
+
+// ====== ตอบ ======
+function answer(ans){
+
+  if(questions[current].a === ans){
+    score++;
+  }
+
+  document.getElementById("score").innerText = score;
+
+  nextQuestion();
+}
+
+// ====== ข้อต่อไป ======
+function nextQuestion(){
+  current++;
+  showQuestion();
+}
+
+// ====== จบเกม ======
+function endGame(){
+
   clearInterval(timer);
-  let p = Math.round(score/qs.length*100);
+  clearInterval(qtimer);
 
-  document.getElementById("sum").style.display="block";
-  document.getElementById("final").innerText =
-    score+"/"+qs.length+" ("+p+"%) เวลา "+t+" วิ";
-}
+  let name = document.getElementById("name").value;
+  let id = document.getElementById("id").value;
 
-function send(){
+  let percent = Math.round((score/questions.length)*100);
+
+  // ส่งคะแนน
   fetch(URL,{
     method:"POST",
-    body: JSON.stringify({
-      name: document.getElementById("name").value,
-      id: document.getElementById("sid").value,
-      score: score,
-      percent: Math.round(score/qs.length*100)
+    body:JSON.stringify({
+      name:name,
+      id:id,
+      score:score,
+      percent:percent
     })
   });
-  alert("ส่งคะแนนแล้ว");
+
+  // เฉลย
+  let text = "🎉 คะแนน "+score+"/40\n\nเฉลย:\n";
+
+  questions.forEach((q,i)=>{
+    text += (i+1)+". "+q.q+" = "+(q.a?"✔":"✖")+"\n";
+  });
+
+  alert(text);
+
+  document.getElementById("question").innerText = "จบเกมแล้ว";
 }
 
 </script>
